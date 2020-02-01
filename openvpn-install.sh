@@ -108,7 +108,16 @@ if [[ -e /etc/openvpn/server/server.conf ]]; then
 				client=$(sed 's/[^0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-]/_/g' <<< "$unsanitized_client")
 			done
 			cd /etc/openvpn/server/easy-rsa/
-			EASYRSA_CERT_EXPIRE=3650 ./easyrsa build-client-full "$client" nopass
+			read -p "Use a password? [Y/n]: " withPwd
+                        until [[ "$withPwd" =~ ^[yYnN]*$ ]]; do
+                                echo "$withPwd: invalid selection."
+                                read -p "Use a password? [Y/n]: " withPwd
+                        done
+                        if [[ "$withPwd" =~ ^[yY]{0,1}$ ]]; then
+				EASYRSA_CERT_EXPIRE=3650 ./easyrsa build-client-full "$client"
+			else
+				EASYRSA_CERT_EXPIRE=3650 ./easyrsa build-client-full "$client" nopass
+			fi
 			# Generates the custom client.ovpn
 			new_client "$client"
 			echo
